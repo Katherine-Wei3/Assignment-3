@@ -16,6 +16,12 @@ from collections import namedtuple
 ServerResponse = namedtuple('ServerResponse', ['type','message', 'token'])
 Message = namedtuple('Message', ['message', 'direction', 'name', 'timestamp'])
 
+class DSPError(Exception):
+    '''
+    An exception to be used when received commands do not follow protocol specifications
+    '''
+    pass
+
 def extract_json(json_msg:str) -> ServerResponse:
   '''
   Call the json.loads function on a json response and convert it to a DataTuple object
@@ -32,6 +38,8 @@ def extract_json(json_msg:str) -> ServerResponse:
       return ServerResponse(type, message, token)
   except json.JSONDecodeError:
     print("Json cannot be decoded.")
+  except Exception:
+    raise DSPError
 
 def auth_request(username: str, password: str) -> str:
   '''
@@ -89,6 +97,8 @@ def _extract_messages(json_obj: dict) -> list[Message]:
     return messages
   except json.JSONDecodeError:
     print("Json cannot be decoded.")
+  except Exception:
+    raise DSPError
   
 
 
