@@ -1,5 +1,8 @@
 from ds_protocol import auth_request, extract_json, direct_message_request, fetch
 import unittest
+from collections import namedtuple
+
+Message = namedtuple('Message', ['message', 'direction', 'name', 'timestamp'])
 
 class TestDSProtocol(unittest.TestCase):
     def test_extract_json(self):
@@ -21,7 +24,7 @@ class TestDSProtocol(unittest.TestCase):
         json_msg = '{"token": "<TOKEN>", "fetch": "<FETCH_TYPE>"}'
         self.assertEqual(fetch("<TOKEN>", "<FETCH_TYPE>"), json_msg)
 
-    def test_extract_json(self):
+    def test_extract_message(self):
         json_msg = str(
         {
             "response": {
@@ -34,24 +37,15 @@ class TestDSProtocol(unittest.TestCase):
                     },
                     {
                         "message": "Text me ASAP",
-                        "from": "thebeemoviescript",
+                        "recipient": "thebeemoviescript",
                         "timestamp": "1603167689.3928561"
                     }
                 ]
             }
         })
-        lst = [
-                    {
-                        "message": "Are you there?!",
-                        "from": "markb",
-                        "timestamp": "1603167689.3928561"
-                    },
-                    {
-                        "message": "Text me ASAP",
-                        "from": "thebeemoviescript",
-                        "timestamp": "1603167689.3928561"
-                    }
-                ] # FIXME
+        msg1 = Message("Are you there?!", "received", "markb", "1603167689.3928561")
+        msg2 = Message("Text me ASAP", "sent", "thebeemoviescript", "1603167689.3928561")
+        lst = [msg1, msg2]
         self.assertEqual(extract_json(json_msg).type, 'ok')
         self.assertEqual(extract_json(json_msg).messages, lst)
 

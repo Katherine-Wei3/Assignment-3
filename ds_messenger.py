@@ -58,10 +58,12 @@ class DirectMessenger:
 
   def retrieve_new(self) -> list:
     # must return a list of DirectMessage objects containing all new messages
-    fetch(self.token, 'unread')
+    self.send.write(fetch(self.token, 'unread') + '\r\n')
     self.response = extract_json(self.recv.readline())
- 
+    return self.response.message
+  
   def retrieve_all(self) -> list:
     # must return a list of DirectMessage objects containing all messages
     fetch(self.token, 'all')
     self.response = extract_json(self.recv.readline())
+    return self.response.message
