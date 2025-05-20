@@ -21,5 +21,39 @@ class TestDSProtocol(unittest.TestCase):
         json_msg = '{"token": "<TOKEN>", "fetch": "<FETCH_TYPE>"}'
         self.assertEqual(fetch("<TOKEN>", "<FETCH_TYPE>"), json_msg)
 
+    def test_extract_json(self):
+        json_msg = str(
+        {
+            "response": {
+                "type": "ok",
+                "messages": [
+                    {
+                        "message": "Are you there?!",
+                        "from": "markb",
+                        "timestamp": "1603167689.3928561"
+                    },
+                    {
+                        "message": "Text me ASAP",
+                        "from": "thebeemoviescript",
+                        "timestamp": "1603167689.3928561"
+                    }
+                ]
+            }
+        })
+        lst = [
+                    {
+                        "message": "Are you there?!",
+                        "from": "markb",
+                        "timestamp": "1603167689.3928561"
+                    },
+                    {
+                        "message": "Text me ASAP",
+                        "from": "thebeemoviescript",
+                        "timestamp": "1603167689.3928561"
+                    }
+                ] # FIXME
+        self.assertEqual(extract_json(json_msg).type, 'ok')
+        self.assertEqual(extract_json(json_msg).messages, lst)
+
 if __name__ == "__main__":
     unittest.main()
