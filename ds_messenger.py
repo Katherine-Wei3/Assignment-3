@@ -29,11 +29,12 @@ class DirectMessenger:
     self.password = password
     self._connect(dsuserver, 3001)
   
-  def _connect(self, host: int, port: int) -> None:
+  def _connect(self, host: str, port: int) -> None:
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.host = host
     self.port = port
     self.sock.connect((self.host, self.port))
+    self.sock.settimeout(3)
     self.send_file = self.sock.makefile('w')
     self.recv = self.sock.makefile('r')
     	
@@ -41,27 +42,27 @@ class DirectMessenger:
     self.send_file.write(join_msg + '\r\n')
     self.send_file.flush()
     self.response = extract_json(self.recv.readline())
-    if self.response.type == 'ok':
-      self.token = self.response.token
-    else:
-      print('Authentication Failed')
+    try:
+      if self.response.type == 'ok':
+       self.token = self.response.token
+    except:
+       print('Authentication Failed')
 
-  def send(self, message:str, recipient:str) -> bool:
-    # must return true if message successfully sent, false if send failed.
-    msg = direct_message_request(self.token, recipient, message, time.time())
-    self.send_file.write(msg + '\r\n')
-    self.response = extract_json(self.recv.readline())
-    if self.response.type == 'ok': # FIXME
-      return True
-    else:
-      return False
+  def send(self, message:str, recipient:str) -> bool: 
+    try:
+        msg = direct_message_request(self.token, recipient, message, str(time.time()))
+        self.send_file.write(msg + '\r\n')
+        self.send_file.flush()
+        return True 
+    except Exception as e:
+        print("Failed to send:", e)
+        return False
 
   def retrieve_new(self) -> list:
     # must return a list of DirectMessage objects containing all new messages
     self.send_file.write(fetch(self.token, 'unread') + '\r\n')
     self.send_file.flush()
     self.response = extract_json(self.recv.readline())
-    print(self.response)
     return self.response.message
   
   def retrieve_all(self) -> list:
