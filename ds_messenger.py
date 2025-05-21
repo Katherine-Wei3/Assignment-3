@@ -61,6 +61,7 @@ class DirectMessenger:
     self.send_file.write(fetch(self.token, 'unread') + '\r\n')
     self.send_file.flush()
     self.response = extract_json(self.recv.readline())
+    print(self.response)
     return self.response.message
   
   def retrieve_all(self) -> list:
@@ -69,3 +70,11 @@ class DirectMessenger:
     self.send_file.flush()
     self.response = extract_json(self.recv.readline())
     return self.response.message
+  
+  def close(self):
+    if self.send_file:
+        self.send_file.close()
+    if self.recv:
+        self.recv.close()
+    if self.sock:
+        self.sock.close()
