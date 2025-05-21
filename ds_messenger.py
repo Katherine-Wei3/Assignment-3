@@ -27,19 +27,19 @@ class DirectMessenger:
     self.server = dsuserver
     self.username = username
     self.password = password
-    self._connect()
+    self._connect(dsuserver, 3001)
   
   def _connect(self, host: int, port: int) -> None:
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.host = host
     self.port = port
     self.sock.connect((self.host, self.port))
-    self.send = self.sock.makefile('w')
+    self.send_file = self.sock.makefile('w')
     self.recv = self.sock.makefile('r')
     	
     join_msg = auth_request(self.username, self.password)
-    self.send.write(join_msg + '\r\n')
-    self.send.flush()
+    self.send_file.write(join_msg + '\r\n')
+    self.send_file.flush()
     self.response = extract_json(self.recv.readline())
     if self.response.type == 'ok':
       self.token = self.response.token
@@ -49,7 +49,7 @@ class DirectMessenger:
   def send(self, message:str, recipient:str) -> bool:
     # must return true if message successfully sent, false if send failed.
     msg = direct_message_request(self.token, recipient, message, time.time())
-    self.send.write(msg + '\r\n')
+    self.send_file.write(msg + '\r\n')
     self.response = extract_json(self.recv.readline())
     if self.response.type == 'ok': # FIXME
       return True
@@ -58,12 +58,14 @@ class DirectMessenger:
 
   def retrieve_new(self) -> list:
     # must return a list of DirectMessage objects containing all new messages
-    self.send.write(fetch(self.token, 'unread') + '\r\n')
+    self.send_file.write(fetch(self.token, 'unread') + '\r\n')
+    self.send_file.flush()
     self.response = extract_json(self.recv.readline())
     return self.response.message
   
   def retrieve_all(self) -> list:
     # must return a list of DirectMessage objects containing all messages
-    fetch(self.token, 'all')
+    self.send_file.write(fetch(self.token, 'unread') + '\r\n')
+    self.send_file.flush()
     self.response = extract_json(self.recv.readline())
     return self.response.message

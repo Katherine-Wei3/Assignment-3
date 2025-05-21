@@ -82,23 +82,18 @@ def _extract_messages(json_obj: dict) -> list[Message]:
   This function takes json messages and returns a list of Message objects
   '''
   messages = []
-  try:
-    messages_data = json_obj['response']['messages']
-    for msg in messages_data:
-      message = msg['message']
-      timestamp = msg['timestamp']
-      if 'from' in msg:
-        direction = 'received'
-        name = msg['from']
-      elif 'recipient' in msg:
-        direction = 'sent'
-        name = msg['recipient']
-      messages.append(Message(message, direction, name, timestamp))
-    return messages
-  except json.JSONDecodeError:
-    print("Json cannot be decoded.")
-  except Exception:
-    raise DSPError
-  
+  messages_data = json_obj['response']['messages']
+  for msg in messages_data:
+    message = msg['message']
+    timestamp = msg['timestamp']
+    if 'from' in msg:
+      direction = 'received'
+      name = msg['from']
+    elif 'recipient' in msg:
+      direction = 'sent'
+      name = msg['recipient']
+    messages.append(Message(message, direction, name, timestamp))
+  return messages
+
 
 

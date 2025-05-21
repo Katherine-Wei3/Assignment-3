@@ -1,6 +1,7 @@
 from ds_protocol import auth_request, extract_json, direct_message_request, fetch
 import unittest
 from collections import namedtuple
+import json
 
 Message = namedtuple('Message', ['message', 'direction', 'name', 'timestamp'])
 
@@ -25,7 +26,7 @@ class TestDSProtocol(unittest.TestCase):
         self.assertEqual(fetch("<TOKEN>", "<FETCH_TYPE>"), json_msg)
 
     def test_extract_message(self):
-        json_msg = str(
+        json_msg = json.dumps(
         {
             "response": {
                 "type": "ok",
@@ -47,7 +48,7 @@ class TestDSProtocol(unittest.TestCase):
         msg2 = Message("Text me ASAP", "sent", "thebeemoviescript", "1603167689.3928561")
         lst = [msg1, msg2]
         self.assertEqual(extract_json(json_msg).type, 'ok')
-        self.assertEqual(extract_json(json_msg).messages, lst)
+        self.assertEqual(extract_json(json_msg).message, lst)
 
 if __name__ == "__main__":
     unittest.main()
