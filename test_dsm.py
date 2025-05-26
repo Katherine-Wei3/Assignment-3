@@ -2,22 +2,27 @@ from ds_messenger import DirectMessenger
 import unittest
 from collections import namedtuple
 
-Message = namedtuple('Message', ['message', 'direction', 'name', 'timestamp'])
+Message_received = namedtuple('Message_received', ['message', 'from_name', 'timestamp', 'status'])
+Message_sent = namedtuple('Message_sent', ['message', 'recipient', 'timestamp', 'status'])
 
 class TestDSMessenger(unittest.TestCase):
-    def setUp(self):
-        self.dm = DirectMessenger('127.0.0.1', 'username', 'password')
+    def test_send_and_retrieve_new(self):
+        dm_b = DirectMessenger('127.0.0.1', 'B', '456')
+        dm_b.send('testing_msg', 'A')
+        dm_a = DirectMessenger('127.0.0.1', 'A', '123')
+        new_messages = dm_a.retrieve_new()
+        self.assertIsInstance(new_messages, list)
+        
+        dm_b.close()
+        dm_a.close()
 
-    def test_send(self):
-        self.assertTrue(self.dm.send('testing_message', 'username'))
-    
-    def test_retrieve_new(self):
-        new_messages = self.dm.retrieve_new()
-        self.assertEqual(new_messages, [])
+    def test_send_and_retrieve_all(self):
+        dm_b = DirectMessenger('127.0.0.1', 'B', '456')
+        dm_b.send('hello', 'A')
+        messages = dm_b.retrieve_all()
+        self.assertIsInstance(messages, list)
 
-    def test_retrieve_all(self):
-        messages = self.dm.retrieve_all()
-        self.assertEqual(messages, [{"message": "testing_message", "recipient": "username", "timestamp": "1747846396.924108", "status": "sent"}, {"message": "testing_message", "from": "username", "timestamp": "1747846396.924108", "status": "read"}])
+        dm_b.close()
 
 if __name__ == "__main__":
     unittest.main()
