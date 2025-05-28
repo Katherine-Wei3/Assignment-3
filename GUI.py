@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk, messagebox, filedialog
 from typing import Text
 import ds_messenger
 from pathlib import Path
@@ -17,6 +17,7 @@ class Body(tk.Frame):
         # call the _draw method to pack the widgets
         # into the Body instance
         self._draw()
+        # self.body.entry_editor.delete('1.0', tk.END)
 
     def node_select(self, event):
         """Handle selection of a contact in the treeview."""
@@ -196,7 +197,10 @@ class MainApp(tk.Frame):
         """Send a message to the recipient."""
         # You must implement this!
         msg = self.body.get_text_entry()
-        self.direct_messenger.send(msg, self.recipient)
+        try:
+            self.direct_messenger.send(msg, self.recipient)
+        except ConnectionError as e:
+            messagebox.showerror("Connection Error", str(e))
 
     def add_contact(self):
         """Add a new contact to the contact list."""
@@ -217,6 +221,12 @@ class MainApp(tk.Frame):
             recipient (str): The selected contact's username.
         """
         self.recipient = recipient
+        # FIXME
+        self.body.entry_editor.delete('1.0', tk.END)
+        # Get messages for this contact from the notebook
+        messages = self.direct_messenger.nb.chats.get(recipient, [])
+        for msg in messages:
+            self.body.insert_contact_message(msg)
 
     def configure_server(self):
         """Configure the Direct Messenger server, username, password."""
@@ -252,13 +262,17 @@ class MainApp(tk.Frame):
     def check_new(self):
         """Check for new messages from the server and publish them."""
         # You must implement this!
-        new_msg = self.direct_messenger.retrieve_new()
-        for msg in new_msg:
-            if msg.from_name not in self.body._contacts:
-                self.body.insert_contact(msg.from_name)
-        if new_msg:
-            self._publish(new_msg)
-        self.root.after(2000, self.check_new)
+        try:
+            new_msg = self.direct_messenger.retrieve_new()
+            for msg in new_msg:
+                if msg.from_name not in self.body._contacts:
+                    self.body.insert_contact(msg.from_name)
+                    self.direct_messenger.nb.add_contact_and_message(self.direct_messenger.notebook_path, msg.from_name, msg.message)
+            if new_msg:
+                self._publish(new_msg)
+            self.root.after(2000, self.check_new)
+        except ConnectionError as e:
+            messagebox.showerror("Connection Error", str(e))
 
     def _draw(self):
         """Draw the main application GUI components."""

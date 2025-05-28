@@ -91,6 +91,9 @@ class DirectMessenger:
 
   def send(self, message:str, recipient:str) -> bool: 
     """Send a direct message to a recipient."""
+    if not hasattr(self, 'send_file'):
+      print("Not connected to server.")
+      raise ConnectionError("Not connected to server.")
     msg = direct_message_request(self.token, recipient, message, str(time.time()))
     self.send_file.write(msg + '\r\n')
     self.send_file.flush()
