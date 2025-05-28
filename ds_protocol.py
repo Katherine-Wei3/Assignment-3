@@ -36,7 +36,7 @@ def extract_json(json_msg:str) -> ServerResponse:
         message = json_obj['response']['messages']
         received = _extract_messages_received(json_obj)
         sent = _extract_messages_sent(json_obj)
-        print(f"Received: {received}, Sent: {sent}")  # DEBUG
+        # print(f"Received: {received}, Sent: {sent}")
         message = received + sent
       token = json_obj['response'].get('token') # some replies may not have a token
       return ServerResponse(type, message, token)

@@ -196,7 +196,7 @@ class Notebook:
             self.chats[contact] = []
         if message:
             self.chats[contact].append(message)
-        print(f'locally stored chats: {self.chats}')  # DEBUG
+        # print(f'locally stored chats: {self.chats}') DEBUG
         self.save(p)
 
     def load_local_contacts_and_chats(self, username, password) -> dict:

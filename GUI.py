@@ -28,7 +28,7 @@ class Body(tk.Frame):
 
     def insert_contact(self, contact: str):
         """Insert a contact into the contact list and treeview."""
-        print(self._contacts) # debug 
+        # print(self._contacts) debug 
         if contact not in self._contacts:
             self._contacts.append(contact)
             id = len(self._contacts) - 1
@@ -250,7 +250,7 @@ class MainApp(tk.Frame):
         """
         # You must implement this!
         sender = getattr(msg, 'from_name', None)
-        print(f'sender: {sender}')  # DEBUG
+        # print(f'sender: {sender}') DEBUG
         if sender and sender not in self.body._contacts:
             self.body.insert_contact(sender)
             if self.recipient == sender:

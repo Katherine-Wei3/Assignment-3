@@ -33,13 +33,13 @@ from notebook import Notebook
 #   with open(p, 'w') as f:
 #     json.dump(messages, f)
 
-class DirectMessage:
-  def __init__(self):
-    """Initialize a DirectMessage object with default values."""
-    self.recipient = None
-    self.message = None
-    self.sender = None
-    self.timestamp = None
+# class DirectMessage:
+#   def __init__(self):
+#     """Initialize a DirectMessage object with default values."""
+#     self.recipient = None
+#     self.message = None
+#     self.sender = None
+#     self.timestamp = None
 
 class DirectMessenger:
   def __init__(self, dsuserver=None, username=None, password=None):
@@ -62,10 +62,7 @@ class DirectMessenger:
     try: 
       self._connect(self.server, 3001)
     except Exception as e:
-      print(f"Connection failed: {e}")
-    # finally:
-    #   #load local message file
-    #   self.local_messages = self.nb.get_chat_history(self.username, self.password)
+      raise ConnectionError(f"Connection failed: {e}")
 
   def _connect(self, host: str, port: int) -> None:
     """Connect to the Direct Social Messenger server."""
@@ -92,8 +89,8 @@ class DirectMessenger:
   def send(self, message:str, recipient:str) -> bool: 
     """Send a direct message to a recipient."""
     if not hasattr(self, 'send_file'):
-      print("Not connected to server.")
       raise ConnectionError("Not connected to server.")
+      
     msg = direct_message_request(self.token, recipient, message, str(time.time()))
     self.send_file.write(msg + '\r\n')
     self.send_file.flush()
@@ -116,19 +113,21 @@ class DirectMessenger:
     self.response = extract_json(resp)
     
     if self.response:
-      print(self.response) # DEBUG
-      for msg in self.response.message:
-        if msg.from_name not in self.nb.chats:
-          self.nb.chats[msg.from_name] = []
+      for msg in self.response:
+        sender = getattr(msg, 'from_name', None) or getattr(msg, 'recipient', None)
+        if sender not in self.nb.chats:
+          self.nb.chats[sender] = []
       return self.response.message
     else:
       return []
   
   def retrieve_all(self) -> list:
     """Retrieve all direct messages."""
+    
     if not hasattr(self, 'send_file'):
       print("Not connected to server.")
       return []
+    
     # must return a list of DirectMessage objects containing all messages
     self.send_file.write(fetch(self.token, 'all') + '\r\n')
     self.send_file.flush()
@@ -136,15 +135,18 @@ class DirectMessenger:
     self.response = extract_json(resp)
 
     if self.response:
-      for msg in self.response.message:
-        if msg.from_name not in self.nb.chats:
-          self.nb.chats[msg.from_name] = []
+      for msg in self.response:
+        sender = getattr(msg, 'from_name', None) or getattr(msg, 'recipient', None)
+        if sender not in self.nb.chats:
+          self.nb.chats[sender] = []
       return self.response.message
+    else: 
+      return []
 
   def close(self) -> None:
     """Close the connection to the Direct Social Messenger server."""
     try:
-      if self.send_file:
+      if hasattr(self, 'send_file'):
           self.send_file.close()
       if self.recv:
           self.recv.close()
