@@ -4,9 +4,11 @@ from typing import Text
 import ds_messenger
 from pathlib import Path
 import json
+from notebook import Notebook
 
 class Body(tk.Frame):
     def __init__(self, root, recipient_selected_callback=None):
+        """Initialize the Body frame with a treeview for contacts and text editors."""
         tk.Frame.__init__(self, root)
         self.root = root
         self._contacts = [str]
@@ -17,52 +19,46 @@ class Body(tk.Frame):
         self._draw()
 
     def node_select(self, event):
+        """Handle selection of a contact in the treeview."""
         index = int(self.posts_tree.selection()[0])
         entry = self._contacts[index]
         if self._select_callback is not None:
             self._select_callback(entry)
 
     def insert_contact(self, contact: str):
-        self._contacts.append(contact)
-        id = len(self._contacts) - 1
-        self._insert_contact_tree(id, contact)
-        
-        USERS_PATH = 'users.json'
-        STORE_DIR_PATH = 'store'
-        users_path = Path('.') / STORE_DIR_PATH / Path(USERS_PATH)
-        existing_users = None
-        with users_path.open('r') as user_file:
-            existing_users = json.load(user_file)
-
-        fetched_user = existing_users.get(contact, None)
-        if not fetched_user:
-            with users_path.open('w') as user_file:
-                fetched_user = existing_users.get(contact, None)
-                if fetched_user: ##double check that no user exists
-                    return False
-                else:
-                    existing_users.update({contact: {'password': 'password', 'bio': {"entry": "", "timestamp": ""}, 'posts': [], 'messages':[]}})
-                json.dump(existing_users, user_file)
+        """Insert a contact into the contact list and treeview."""
+        print(self._contacts) # debug 
+        if contact not in self._contacts:
+            self._contacts.append(contact)
+            id = len(self._contacts) - 1
+            self._insert_contact_tree(id, contact)
 
     def _insert_contact_tree(self, id, contact: str):
+        """Insert a contact into the treeview."""
         if len(contact) > 25:
             entry = contact[:24] + "..."
         id = self.posts_tree.insert('', id, id, text=contact)
 
     def insert_user_message(self, message:str):
+        """Insert a user message into the entry editor."""
         self.entry_editor.insert(1.0, message + '\n', 'entry-right')
 
     def insert_contact_message(self, message:str):
+        """Insert a contact message into the entry editor."""
         self.entry_editor.insert(1.0, message + '\n', 'entry-left')
 
     def get_text_entry(self) -> str:
+        """Get the text from the message editor."""
         return self.message_editor.get('1.0', 'end').rstrip()
 
     def set_text_entry(self, text:str):
+        """Set the text in the message editor."""
+
         self.message_editor.delete(1.0, tk.END)
         self.message_editor.insert(1.0, text)
 
     def _draw(self):
+        """Draw the main body of the application with contacts and message editors."""
         posts_frame = tk.Frame(master=self, width=250)
         posts_frame.pack(fill=tk.BOTH, side=tk.LEFT)
 
@@ -101,6 +97,7 @@ class Body(tk.Frame):
 
 
 class Footer(tk.Frame):
+    """Footer frame for the Direct Messenger GUI, containing buttons and status labels."""
     def __init__(self, root, send_callback=None):
         tk.Frame.__init__(self, root)
         self.root = root
@@ -108,14 +105,17 @@ class Footer(tk.Frame):
         self._draw()
 
     def send_click(self):
+        """Handle the click event for the send button."""
         if self._send_callback is not None:
             self._send_callback()
 
     def _add_contact_callback(self):
+        """Handle the click event for the add contact button."""
         if self._send_callback is not None:
             self._send_callback()
 
     def _draw(self):
+        """Draw the footer with buttons and status labels."""
         save_button = tk.Button(master=self, text="Send", width=20, command=self.send_click)
         # You must implement this.
         # Here you must configure the button to bind its click to
@@ -130,14 +130,16 @@ class Footer(tk.Frame):
 
 
 class NewContactDialog(tk.simpledialog.Dialog):
-    def __init__(self, root, title=None, user=None, pwd=None, server=None):
+    def __init__(self, root: tk.Tk, title: str = None, user: str = None, pwd: str = None, server: str = None):
+        """Initialize the dialog for configuring the Direct Messenger server and user credentials."""
         self.root = root
         self.server = server
         self.user = user
         self.pwd = pwd
         super().__init__(root, title)
 
-    def body(self, frame):
+    def body(self, frame: tk.Frame):
+        """Create the body of the dialog with entry fields for server, username, and password."""
         self.server_label = tk.Label(frame, width=30, text="DS Server Address")
         self.server_label.pack()
         self.server_entry = tk.Entry(frame, width=30)
@@ -163,13 +165,16 @@ class NewContactDialog(tk.simpledialog.Dialog):
         self.password_entry.pack()
 
     def apply(self):
+        """Apply the changes made in the dialog."""
         self.user = self.username_entry.get()
         self.pwd = self.password_entry.get()
         self.server = self.server_entry.get()
 
 
 class MainApp(tk.Frame):
+    """Main application frame for the direct messenger GUI."""
     def __init__(self, root):
+        """Initialize the main application, configure server, and set up GUI widgets."""
         tk.Frame.__init__(self, root)
         self.root = root
         self.username = ''
@@ -185,15 +190,16 @@ class MainApp(tk.Frame):
         # into the root frame
         self._draw()
         self.configure_server()
-        # self.body.insert_contact("studentexw23") adding one example student.
         self.root.after(2000, self.check_new)
 
     def send_message(self):
+        """Send a message to the recipient."""
         # You must implement this!
         msg = self.body.get_text_entry()
         self.direct_messenger.send(msg, self.recipient)
 
     def add_contact(self):
+        """Add a new contact to the contact list."""
         # You must implement this!
         # Hint: check how to use tk.simpledialog.askstring to retrieve
         # the name of the new contact, and then use one of the body
@@ -202,11 +208,18 @@ class MainApp(tk.Frame):
         if new_contact:
             self.body.insert_contact(new_contact)
             self.recipient = new_contact
+        self.direct_messenger.nb.add_contact_and_message(self.direct_messenger.notebook_path, new_contact)
 
-    def recipient_selected(self, recipient):
+    def recipient_selected(self, recipient: str):
+        """Set the current recipient when a contact is selected.
+
+        Args:
+            recipient (str): The selected contact's username.
+        """
         self.recipient = recipient
 
     def configure_server(self):
+        """Configure the Direct Messenger server, username, password."""
         ud = NewContactDialog(self.root, "Configure Account",
                               self.username, self.password, self.server)
         self.username = ud.user
@@ -216,21 +229,39 @@ class MainApp(tk.Frame):
         # You must configure and instantiate your
         # DirectMessenger instance after this line.
         self.direct_messenger = ds_messenger.DirectMessenger(self.server, self.username, self.password)
+        print(self.direct_messenger.nb.contacts)
+        for contact in self.direct_messenger.nb.contacts:
+            self.body.insert_contact(contact)
 
-    def publish(self, msg: list): 
+    def _publish(self, msg: list):
+        """Publish a new message to the contact list and entry editor.
+        Args:
+            msg (list): A list of DirectMessage objects to be published.
+        """
         # You must implement this!
-        self.body.insert_contact_message(msg)
-        self.body.insert_contact(self.recipient)
+        sender = getattr(msg, 'from_name', None)
+        print(f'sender: {sender}')  # DEBUG
+        if sender and sender not in self.body._contacts:
+            self.body.insert_contact(sender)
+            if self.recipient == sender:
+                self.body.insert_contact_message(msg)
+        for m in msg:
+            self.body.insert_contact_message(m.message)
+        self.direct_messenger.nb.add_contact_and_message(self.direct_messenger.notebook_path, self.recipient, m.message)
 
     def check_new(self):
+        """Check for new messages from the server and publish them."""
         # You must implement this!
         new_msg = self.direct_messenger.retrieve_new()
+        for msg in new_msg:
+            if msg.from_name not in self.body._contacts:
+                self.body.insert_contact(msg.from_name)
         if new_msg:
-            for msg in new_msg:
-                self.publish(msg.message)
+            self._publish(new_msg)
         self.root.after(2000, self.check_new)
 
     def _draw(self):
+        """Draw the main application GUI components."""
         # Build a menu and add it to the root frame.
         menu_bar = tk.Menu(self.root)
         self.root['menu'] = menu_bar

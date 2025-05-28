@@ -91,6 +91,8 @@ class Notebook:
         self.password = password 
         self.bio = bio 
         self._diaries = []
+        self.contacts = []
+        self.chats = {} 
     
 
     def add_diary(self, diary: Diary) -> None:
@@ -137,7 +139,7 @@ class Notebook:
         """
         p = Path(path)
 
-        if p.exists() and p.suffix == '.json':
+        if p.suffix == '.json': # deleted 'p.exists() and'
             try:
                 f = open(p, 'w')
                 json.dump(self.__dict__, f, indent=4)
@@ -172,8 +174,43 @@ class Notebook:
                 for diary_obj in obj['_diaries']:
                     diary = Diary(diary_obj['entry'], diary_obj['timestamp'])
                     self._diaries.append(diary)
+                self.contacts = obj.get('contacts', [])   # <-- ADD THIS LINE
+                self.chats = obj.get('chats', {})
                 f.close()
             except Exception as ex:
                 raise IncorrectNotebookError(ex)
         else:
             raise NotebookFileError()
+        self.chats = obj.get('chats', {})
+        
+    def add_contact_and_message(self, p: str, contact: str, message: str = None) -> None:
+        """Add a message to the chat history with a contact.
+
+        Args:
+            contact (str): The contact's username.
+            message (str): The message text.
+        """
+        if contact and contact not in self.contacts:
+            self.contacts.append(contact)
+        if contact and contact not in self.chats:
+            self.chats[contact] = []
+        if message:
+            self.chats[contact].append(message)
+        print(f'locally stored chats: {self.chats}')  # DEBUG
+        self.save(p)
+
+    def load_local_contacts_and_chats(self, username, password) -> dict:
+        """Get the all chat history.
+
+        Args:
+            username (str): The username of the user.
+            password (str): The password of the user.
+        
+        Returns:
+            dict: A dictionary containing all chat histories.
+        """
+        if username == self.username and password == self.password:
+            return self.chats
+        else:
+            raise Exception("Incorrect username or password for local notebook.")
+

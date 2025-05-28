@@ -8,7 +8,6 @@
 # yininw17@uci.edu
 # 14645993
 
-# TODO: ERROR HANDLING, FORMING REQUESTS, AND PARSING RESPONSES
 import json
 from collections import namedtuple
 
