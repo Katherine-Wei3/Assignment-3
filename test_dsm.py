@@ -24,6 +24,30 @@ class TestDSMessenger(unittest.TestCase):
 
         dm_b.close()
 
+    def test_init_sets_attributes(self):
+        dm = DirectMessenger('127.0.0.1', 'A', '123')
+        self.assertEqual(dm.username, 'A')
+        self.assertEqual(dm.password, '123')
+        self.assertTrue(str(dm.notebook_path).endswith('A_notebook.json'))
+        dm.close()
+
+    def test_send_without_connection(self):
+        dm = DirectMessenger('badhost', 'A', '123')
+        with self.assertRaises(ConnectionError):
+            dm.send('msg', 'B')
+        dm.close()
+
+    def test_notebook_saves_and_loads(self):
+        dm = DirectMessenger('127.0.0.1', 'A', '123')
+        dm.nb.add_contact_and_message(str(dm.notebook_path), 'B', 'test message')
+        dm.nb.save(str(dm.notebook_path))
+        dm2 = DirectMessenger('127.0.0.1', 'A', '123')
+        dm2.nb.load(str(dm.notebook_path))
+        self.assertIn('B', dm2.nb.chats)
+        self.assertIn('test message', dm2.nb.chats['B'])
+        dm.close()
+        dm2.close()
+
 if __name__ == "__main__":
     unittest.main()
     

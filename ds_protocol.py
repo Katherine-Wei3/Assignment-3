@@ -33,8 +33,10 @@ def extract_json(json_msg:str) -> ServerResponse:
       if 'message' in json_obj['response']:
         message = json_obj['response']['message']
       elif 'messages' in json_obj['response']:
+        message = json_obj['response']['messages']
         received = _extract_messages_received(json_obj)
         sent = _extract_messages_sent(json_obj)
+        print(f"Received: {received}, Sent: {sent}")  # DEBUG
         message = received + sent
       token = json_obj['response'].get('token') # some replies may not have a token
       return ServerResponse(type, message, token)
@@ -104,7 +106,7 @@ def _extract_messages_sent(json_obj: dict) -> list[Message_sent]:
   messages = []
   messages_data = json_obj['response']['messages']
   for msg in messages_data:
-      if 'recipient' in msg and msg.get('status') == 'sent':
+      if 'recipient' in msg: #and msg.get('status') == 'sent'
           messages.append(
               Message_sent(
                   msg['message'],

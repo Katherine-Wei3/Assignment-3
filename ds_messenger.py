@@ -143,12 +143,15 @@ class DirectMessenger:
 
   def close(self) -> None:
     """Close the connection to the Direct Social Messenger server."""
-    if self.send_file:
-        self.send_file.close()
-    if self.recv:
-        self.recv.close()
-    if self.client:
-        self.client.close()
+    try:
+      if self.send_file:
+          self.send_file.close()
+      if self.recv:
+          self.recv.close()
+      if self.client:
+          self.client.close()
+    except Exception as e:
+      print(f"Error closing connections: {e}")
 
   def save(self, filename: str, data: dict) -> None:
     """

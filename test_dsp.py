@@ -3,7 +3,7 @@ import unittest
 from collections import namedtuple
 import json
 
-Message = namedtuple('Message', ['message', 'direction', 'name', 'timestamp'])
+Message_received = namedtuple('Message_received', ['message', 'from_name', 'timestamp', 'status'])
 
 class TestDSProtocol(unittest.TestCase):
     def test_extract_json(self):
@@ -44,11 +44,12 @@ class TestDSProtocol(unittest.TestCase):
                 ]
             }
         })
-        msg1 = Message("Are you there?!", "received", "markb", "1603167689.3928561")
-        msg2 = Message("Text me ASAP", "sent", "thebeemoviescript", "1603167689.3928561")
+        msg1 = Message_received("Are you there?!", "markb", "1603167689.3928561", None)
+        msg2 = Message_received("Text me ASAP", "thebeemoviescript", "1603167689.3928561", None)
         lst = [msg1, msg2]
-        self.assertEqual(extract_json(json_msg).type, 'ok')
+        # print(extract_json(json_msg).message)  # DEBUG
         self.assertEqual(extract_json(json_msg).message, lst)
+        self.assertEqual(extract_json(json_msg).type, 'ok')
 
 if __name__ == "__main__":
     unittest.main()

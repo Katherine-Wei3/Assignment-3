@@ -1,0 +1,14 @@
+{
+    "username": "A",
+    "password": "123",
+    "bio": "",
+    "_diaries": [],
+    "contacts": [
+        "B"
+    ],
+    "chats": {
+        "B": [
+            "test message"
+        ]
+    }
+}
