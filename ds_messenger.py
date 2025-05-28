@@ -18,7 +18,7 @@ import socket
 import time
 import json
 from pathlib import Path
-from ds_protocol import extract_json, auth_request, direct_message_request, fetch
+from ds_protocol import extract_json, auth_request, direct_message_request, fetch_request
 from notebook import Notebook
 
 # MSG_PATH = "."
@@ -75,7 +75,7 @@ class DirectMessenger:
         try:
             self._connect(self.server, 3001)
         except Exception as error:
-            raise ConnectionError(f'Connection failed: {error}') from error
+            print(f"Connection failed: {error}")
 
     def _connect(self, host: str, port: int) -> None:
         """Connect to the Direct Social Messenger server."""
@@ -123,7 +123,7 @@ class DirectMessenger:
             return []
         # must return a list of DirectMessage objects containing all new
         # messages
-        self.send_file.write(fetch(self.token, 'unread') + '\r\n')
+        self.send_file.write(fetch_request(self.token, 'unread') + '\r\n')
         self.send_file.flush()
         resp = self.recv.readline()
         self.response = extract_json(resp)
@@ -146,7 +146,7 @@ class DirectMessenger:
             return []
 
         # must return a list of DirectMessage objects containing all messages
-        self.send_file.write(fetch(self.token, 'all') + '\r\n')
+        self.send_file.write(fetch_request(self.token, 'all') + '\r\n')
         self.send_file.flush()
         resp = self.recv.readline()
         self.response = extract_json(resp)

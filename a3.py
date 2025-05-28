@@ -9,7 +9,7 @@
 # yininw17@uci.edu
 # 14645993
 
-from GUI import MainApp
+from gui import MainApp
 import tkinter as tk
 
 if __name__ == "__main__":

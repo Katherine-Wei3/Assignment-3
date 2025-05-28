@@ -223,8 +223,8 @@ class MainApp(tk.Frame):
             sender = getattr(msg, 'from_name', None)
             if sender and sender not in self.body.contacts:
                 self.body.insert_contact(sender)
-                if self.recipient == sender:
-                    self.body.insert_contact_message(msg.message)
+            if self.recipient == sender:
+                self.body.insert_contact_message(msg.message)
             self.body.insert_contact_message(msg.message)
             self.direct_messenger.notebook.add_contact_and_message(
                 self.direct_messenger.notebook_path, self.recipient, msg.message)

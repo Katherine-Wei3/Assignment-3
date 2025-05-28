@@ -158,7 +158,7 @@ class Notebook:
             self.contacts.append(contact)
         if contact and contact not in self.chats:
             self.chats[contact] = []
-        if message:
+        if contact and message:
             self.chats[contact].append(message)
         self.save(path)
 
