@@ -20,32 +20,11 @@ import json
 from pathlib import Path
 from ds_protocol import extract_json, auth_request, direct_message_request, fetch_request
 from notebook import Notebook
+from collections import namedtuple
 
-# MSG_PATH = "."
-# MSG_FILE = "local_messages.json"
-# p = Path(MSG_PATH)/MSG_FILE
-# if not p.exists():
-#   p.touch()
-
-# def load_local_messages() -> list:
-#   """Load local messages from a JSON file."""
-#   if p.exists() and p.stat().st_size > 0:
-#     with open(p, 'r') as f:
-#       return json.load(f)
-#   return []
-
-# def save_local_messages(messages: list) -> None:
-#   """Save local messages to local_messages.json"""
-#   with open(p, 'w') as f:
-#     json.dump(messages, f)
-
-# class DirectMessage:
-#   def __init__(self):
-#     """Initialize a DirectMessage object with default values."""
-#     self.recipient = None
-#     self.message = None
-#     self.sender = None
-#     self.timestamp = None
+MessageSent = namedtuple(
+    'MessageSent', [
+        'message', 'recipient', 'timestamp', 'status'])
 
 class DirectMessenger:
     """
@@ -110,10 +89,14 @@ class DirectMessenger:
         self.send_file.flush()
         resp = self.recv.readline()
         self.response = extract_json(resp)
-        # if self.response and self.response.type == 'ok':
-        #     return True
-        # else:
-        #     return False
+        self.notebook.chats[recipient].append(MessageSent(
+            message=message,
+            recipient=recipient,
+            timestamp=time.time(),
+            status="sent"
+        ))
+        self.notebook.save(self.notebook_path)
+
 
     def retrieve_new(self) -> list:
         """Retrieve all unread direct messages."""
@@ -163,18 +146,19 @@ class DirectMessenger:
 
     def close(self) -> None:
         """Close the connection to the Direct Social Messenger server."""
-        if hasattr(self, 'send_file'):
-            self.send_file.close()
-        if self.recv:
-            self.recv.close()
-        if self.client:
-            self.client.close()
-        # except Exception as error:
-        #     print(f"Error closing connections: {error}")
+        try:
+            if hasattr(self, 'send_file'):
+                self.send_file.close()
+            if self.recv:
+                self.recv.close()
+            if self.client:
+                self.client.close()
+        except Exception as error:
+            print(f"Error closing connections: {error}")
 
     def save(self, filename: str, data: dict) -> None:
         """
         Save data to a JSON file.
         """
         with open(filename, 'w') as file:
-            json.dump(data, file, encoding = 'utf-8', indent=4)
+            json.dump(data, file, indent=4)

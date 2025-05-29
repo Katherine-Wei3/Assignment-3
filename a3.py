@@ -9,8 +9,10 @@
 # yininw17@uci.edu
 # 14645993
 
-from gui import MainApp
+"""Main entry point for the ICS 32 Distributed Social Messenger GUI."""
+
 import tkinter as tk
+from gui import MainApp
 
 if __name__ == "__main__":
     # All Tkinter programs start with a root window. We will name ours 'main'.
@@ -42,8 +44,8 @@ if __name__ == "__main__":
     # behavior of the window changes.
     main.update()
     main.minsize(main.winfo_width(), main.winfo_height())
-    id = main.after(2000, app.check_new)
-    print(id)
+    after_id = main.after(2000, app.check_new)
+    print(after_id)
     # And finally, start up the event loop for the program (you can find
     # more on this in lectures of week 9 and 10).
     main.mainloop()

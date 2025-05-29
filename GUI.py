@@ -36,11 +36,11 @@ class Body(tk.Frame):
 
     def insert_user_message(self, message: str):
         """Insert a user message into the entry editor."""
-        self.entry_editor.insert(1.0, message + '\n', 'entry-right')
+        self.entry_editor.insert(tk.END, message + '\n', 'entry-right')
 
     def insert_contact_message(self, message: str):
         """Insert a contact message into the entry editor."""
-        self.entry_editor.insert(1.0, message + '\n', 'entry-left')
+        self.entry_editor.insert(tk.END, message + '\n', 'entry-left')
 
     def get_text_entry(self) -> str:
         """Get the text from the message editor."""
@@ -185,6 +185,8 @@ class MainApp(tk.Frame):
         msg = self.body.get_text_entry()
         try:
             self.direct_messenger.send(msg, self.recipient)
+            self.body.insert_user_message(msg)
+            self.body.set_text_entry("") 
         except ConnectionError as e:
             messagebox.showerror("Connection Error", str(e))
 
@@ -202,8 +204,16 @@ class MainApp(tk.Frame):
         self.recipient = recipient
         self.body.entry_editor.delete('1.0', tk.END)
         messages = self.direct_messenger.notebook.chats.get(recipient, [])
+        print(messages)
         for msg in messages:
-            self.body.insert_contact_message(msg)
+            if 'sent' in msg:
+                self.body.insert_user_message(msg[0])
+            else:
+                self.body.insert_contact_message(msg[0])
+            # if hasattr(msg, "from_name"):
+            #     self.body.insert_contact_message(msg.message)
+            # elif hasattr(msg, "recipient"):
+            #     self.body.insert_user_message(msg.message)
 
     def configure_server(self):
         """Configure the Direct Messenger server, username, password."""
@@ -213,7 +223,10 @@ class MainApp(tk.Frame):
         self.password = ud.pwd
         self.server = ud.server
         self.direct_messenger = DirectMessenger(self.server, self.username, self.password)
-        print(self.direct_messenger.notebook.contacts)
+        if not self.direct_messenger.notebook.load_local_contacts_and_chats(self.username, self.password):
+            messagebox.showerror("Login Failed", "Incorrect password for this user notebook.")
+            return
+        # FIXME
         for contact in self.direct_messenger.notebook.contacts:
             self.body.insert_contact(contact)
 
@@ -225,9 +238,10 @@ class MainApp(tk.Frame):
                 self.body.insert_contact(sender)
             if self.recipient == sender:
                 self.body.insert_contact_message(msg.message)
-            self.body.insert_contact_message(msg.message)
+            # if self.username == msg.recipient:
+            #     self.body.insert_user_message(msg.message)
             self.direct_messenger.notebook.add_contact_and_message(
-                self.direct_messenger.notebook_path, self.recipient, msg.message)
+                self.direct_messenger.notebook_path, self.recipient, msg)
 
     def check_new(self):
         """Check for new messages from the server and publish them."""
@@ -237,12 +251,12 @@ class MainApp(tk.Frame):
                 if msg.from_name not in self.body.contacts:
                     self.body.insert_contact(msg.from_name)
                     self.direct_messenger.notebook.add_contact_and_message(
-                        self.direct_messenger.notebook_path, msg.from_name, msg.message)
+                        self.direct_messenger.notebook_path, msg.from_name, msg)
             if new_msg:
                 self._publish(new_msg)
             self.root.after(2000, self.check_new)
-        except ConnectionError as e:
-            messagebox.showerror("Connection Error", str(e))
+        except ConnectionError as error:
+            messagebox.showerror("Connection Error", str(error))
 
     def _draw(self):
         """Draw the main application GUI components."""

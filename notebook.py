@@ -19,7 +19,14 @@ Handles diary entries, contacts, chats, and file operations for user notebooks.
 import json
 import time as time_module
 from pathlib import Path
+from collections import namedtuple
 
+MessageReceived = namedtuple(
+    'MessageReceived', [
+        'message', 'from_name', 'timestamp', 'status'])
+MessageSent = namedtuple(
+    'MessageSent', [
+        'message', 'recipient', 'timestamp', 'status'])
 
 class NotebookFileError(Exception):
     """
@@ -147,12 +154,12 @@ class Notebook:
             self,
             path: str,
             contact: str,
-            message: str = None) -> None:
+            message: namedtuple = None) -> None:
         """
         Add a message to the chat history with a contact.
         Args:
             contact (str): The contact's username.
-            message (str): The message text.
+            message (namedtuple): The message object.
         """
         if contact and contact not in self.contacts:
             self.contacts.append(contact)
@@ -162,7 +169,7 @@ class Notebook:
             self.chats[contact].append(message)
         self.save(path)
 
-    def load_local_contacts_and_chats(self, username, password) -> dict:
+    def load_local_contacts_and_chats(self, username, password) -> bool:
         """
         Get all chat history for the given username and password.
         Returns:
@@ -171,6 +178,6 @@ class Notebook:
             PermissionError: If username or password is incorrect.
         """
         if username == self.username and password == self.password:
-            return self.chats
-        raise PermissionError("Incorrect username or password for local notebook.")
+            return True
+        return False
     
